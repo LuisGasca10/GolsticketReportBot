@@ -7,14 +7,15 @@ class GenerarReporteTicketsUseCase:
         self.repository = repository
         self.generator = generator
 
-    def ejecutar(self, chat_id: int, generado_por: str, comentarios: str) -> str:
+    def ejecutar(self, user_id: int, generado_por: str, comentarios: str) -> str:
         today = datetime.now()
         start_of_week = today - timedelta(days=today.weekday())
         end_of_week = start_of_week + timedelta(days=6)
         
-        tickets = self.repository.obtener_por_rango_fechas(chat_id, start_of_week, end_of_week)
+        tickets = self.repository.obtener_por_rango_fechas(user_id, start_of_week, end_of_week)
         
-        ruta_archivo = f"reporte_tickets_{chat_id}.xlsx"
+        
+        ruta_archivo = f"reporte_tickets_{user_id}.xlsx"
         
         header_data = {
             "fecha_inicio": start_of_week,

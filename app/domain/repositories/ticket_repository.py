@@ -10,5 +10,6 @@ class ITicketRepository(ABC):
         pass
 
     @abstractmethod
-    def obtener_por_rango_fechas(self, chat_id: int, fecha_inicio: datetime, fecha_fin: datetime) -> List[Ticket]:
+    # Se filtra por el ID del usuario, no del chat
+    def obtener_por_rango_fechas(self, user_id: int, fecha_inicio: datetime, fecha_fin: datetime) -> List[Ticket]:
         pass

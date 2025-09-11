@@ -11,7 +11,7 @@ class Usuario:
 @dataclass
 class Ticket:
     id: int | None
-    user_id: int # Este es el telegram_user_id
+    user_id: int # ID de usuario de Telegram
     chat_id: int
     fecha: datetime
     numero_ticket: str
@@ -19,4 +19,4 @@ class Ticket:
     usuario_reporta: str
     correo_usuario: str
     empresa: str
-    atendido_por: str # <-- NUEVO CAMPO
+    atendido_por: str 
