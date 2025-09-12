@@ -1,4 +1,3 @@
-# src/domain/datasources/usuario_datasource.py
 from abc import ABC, abstractmethod
 from typing import Optional
 from app.domain.entities.entities import Usuario

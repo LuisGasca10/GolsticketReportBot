@@ -1,16 +1,17 @@
 # src/domain/entities.py
 from dataclasses import dataclass
 from datetime import datetime
+from uuid import UUID
 
 @dataclass
 class Usuario:
-    id: int | None
+    id: UUID | None
     telegram_user_id: int
     nombre_completo: str
 
 @dataclass
 class Ticket:
-    id: int | None
+    id: UUID | None
     user_id: int # ID de usuario de Telegram
     chat_id: int
     fecha: datetime

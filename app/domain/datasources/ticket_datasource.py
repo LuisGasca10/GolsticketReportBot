@@ -1,14 +1,14 @@
-# src/domain/datasources/ticket_datasource.py
 from abc import ABC, abstractmethod
 from typing import List
 from datetime import datetime
+from uuid import UUID
 from app.domain.entities.entities import Ticket
 
 class ITicketDatasource(ABC):
     @abstractmethod
-    def agregar(self, ticket: Ticket) -> None:
+    def agregar(self, ticket: Ticket, propietario_id: UUID) -> None:
         pass
 
     @abstractmethod
-    def obtener_por_rango_fechas(self, chat_id: int, fecha_inicio: datetime, fecha_fin: datetime) -> List[Ticket]:
+    def obtener_por_rango_fechas_y_usuario(self, usuario_id: UUID, fecha_inicio: datetime, fecha_fin: datetime) -> List[Ticket]:
         pass

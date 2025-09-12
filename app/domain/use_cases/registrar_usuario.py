@@ -1,4 +1,3 @@
-# src/domain/use_cases/registrar_usuario.py
 from app.domain.entities.entities import Usuario
 from app.domain.repositories.user_repository import IUsuarioRepository
 

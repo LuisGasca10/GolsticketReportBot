@@ -1,92 +1,69 @@
+import os
+import shutil
 import pandas as pd
 from typing import List, Dict, Any
-from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-# Se añade la importación que faltaba
-from openpyxl.utils import get_column_letter
-from openpyxl.utils.dataframe import dataframe_to_rows
-from app.domain.reporting.report_generator import IReportGenerator
+from datetime import datetime
+from openpyxl import load_workbook
+from openpyxl.styles import Font
 from app.domain.entities.entities import Ticket
+from app.domain.reporting.report_generator import IReportGenerator
 
 class ExcelReportGenerator(IReportGenerator):
     def generar(self, datos: List[Any], ruta_archivo: str, header_data: Dict) -> str:
         tickets: List[Ticket] = datos
-        wb = Workbook()
+        BASE_URL = os.getenv("BASE_URL", "")
+        
+        # --- 1. COPIAR LA PLANTILLA ---
+        template_path = 'template_reporte.xlsx'
+        output_path = ruta_archivo
+        
+        if not os.path.exists(template_path):
+            raise FileNotFoundError("No se encontró el archivo 'template_reporte.xlsx' en la raíz del proyecto.")
+            
+        shutil.copy(template_path, output_path)
+
+        # --- 2. ABRIR LA COPIA Y RELLENAR DATOS ---
+        wb = load_workbook(output_path)
         ws = wb.active
-        ws.title = "Reporte de Tickets"
 
-        # --- ESTILOS ---
-        header_font = Font(name='Calibri', size=11, bold=True, color="FFFFFF")
-        header_fill = PatternFill(start_color="4F81BD", fill_type="solid")
-        title_font = Font(name='Calibri', size=12, bold=True, color="4F81BD")
-        cell_font = Font(name='Calibri', size=11)
-        data_fill = PatternFill(start_color="FFFFCC", fill_type="solid")
-        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+        link_font = Font(color="0000FF", underline="single")
+
+        # --- CORRECCIÓN ---
+        # Formatear y mostrar el rango de fechas completo
+        fecha_inicio = header_data.get('fecha_inicio', datetime.now())
+        fecha_fin = header_data.get('fecha_fin', datetime.now())
+        fecha_informe_str = f"{fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')}"
         
-        # --- CABECERA DEL REPORTE ---
-        ws['B2'] = "REPORTE DE TICKETS SEMANAL"
-        ws['B2'].font = title_font
-        
-        ws['B4'] = "SEMANA DEL INFORME"
-        ws['B4'].font = title_font
-        ws['B5'] = header_data['fecha_inicio'].strftime('%d de %B de %Y')
-        
-        ws['B7'] = "GENERADO POR"
-        ws['B7'].font = title_font
-        ws['B8'] = header_data['generado_por']
-        
-        ws['E4'] = "COMENTARIOS"
-        ws['E4'].font = title_font
-        ws.merge_cells('E5:I9')
-        ws['E5'] = header_data['comentarios']
-        ws['E5'].alignment = Alignment(wrap_text=True, vertical='top', horizontal='left')
-        
-        # --- TABLA DE DATOS ---
-        start_row = 12
+        ws['A4'] = header_data.get('generado_por', 'N/A')
+        ws['D4'] = fecha_informe_str # Escribimos el rango de fechas
+
         if not tickets:
-            ws.cell(row=start_row, column=2, value="No se encontraron tickets para esta semana.")
-            wb.save(ruta_archivo)
-            return ruta_archivo
+            ws['A9'] = "No se encontraron tickets para este periodo."
+            wb.save(output_path)
+            return output_path
 
-        data_for_df = [t.__dict__ for t in tickets]
-        df = pd.DataFrame(data_for_df)
+        # --- 3. CALCULAR Y RELLENAR EL CONTADOR DE ACTIVIDADES ---
+        df = pd.DataFrame([t.__dict__ for t in tickets])
         
-        df['fecha'] = pd.to_datetime(df['fecha']).dt.strftime('%Y-%m-%d %H:%M')
-        column_map = {
-            "fecha": "FECHA",
-            "numero_ticket": "NUM TICKET",
-            "servicio": "SERVICIO",
-            "usuario_reporta": "USUARIO",
-            "correo_usuario": "CORREO",
-            "empresa": "EMPRESA"
-        }
-        report_df = df[list(column_map.keys())].rename(columns=column_map)
+        ws['D6'] = len(df) 
 
-        header_row = list(report_df.columns)
-        for col_idx, header_title in enumerate(header_row, 2):
-            cell = ws.cell(row=start_row, column=col_idx, value=header_title)
-            cell.font = header_font
-            cell.fill = header_fill
-            cell.alignment = Alignment(horizontal="center", vertical="center")
-            cell.border = thin_border
-
-        for row_idx, row_data in enumerate(report_df.itertuples(index=False), start_row + 1):
-            for col_idx, cell_value in enumerate(row_data, 2):
-                cell = ws.cell(row=row_idx, column=col_idx, value=cell_value)
-                cell.font = cell_font
-                cell.fill = data_fill
-                cell.border = thin_border
-                cell.alignment = Alignment(horizontal='left')
+        # --- 4. RELLENAR LA TABLA DE TICKETS ---
+        start_row = 9
+        for row_idx, ticket in enumerate(tickets, start=start_row):
+            # Mapeo a las columnas del Excel (A, B, C, D, E, F)
+            ws.cell(row=row_idx, column=1, value=ticket.fecha.strftime('%d/%m/%Y')) # Columna A
+            
+            # Crear el hipervínculo en la columna del ticket (Columna B)
+            ticket_cell = ws.cell(row=row_idx, column=2)
+            ticket_cell.value = f'=HYPERLINK("{BASE_URL}{ticket.numero_ticket}", "{ticket.numero_ticket}")'
+            ticket_cell.font = link_font
+            
+            ws.cell(row=row_idx, column=3, value=ticket.servicio) # Columna C
+            ws.cell(row=row_idx, column=4, value=ticket.usuario_reporta) # Columna D
+            ws.cell(row_idx, column=5, value=ticket.correo_usuario) # Columna E
+            ws.cell(row_idx, column=6, value=ticket.empresa) # Columna F
         
-        for col_idx, column_title in enumerate(header_row, 2):
-            column_letter = get_column_letter(col_idx)
-            max_length = len(column_title)
-            for i in range(len(report_df)):
-                cell_content = str(report_df.iloc[i, col_idx - 2])
-                if len(cell_content) > max_length:
-                    max_length = len(cell_content)
-            adjusted_width = max_length + 4
-            ws.column_dimensions[column_letter].width = adjusted_width
+        # Guardar los cambios en el archivo copiado
+        wb.save(output_path)
+        return output_path
 
-        wb.save(ruta_archivo)
-        return ruta_archivo

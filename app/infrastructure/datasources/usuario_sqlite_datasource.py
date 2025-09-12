@@ -1,8 +1,6 @@
-# src/infrastructure/datasources/usuario_local_datasource.py
 from typing import Optional
-from app.domain.datasources.user_datasource import IUsuarioDatasource
 from app.domain.entities.entities import Usuario
-
+from app.domain.datasources.user_datasource import IUsuarioDatasource
 from app.infrastructure.models.ticket_model import UsuarioModel, SessionLocal
 
 class UsuarioLocalDatasource(IUsuarioDatasource):
