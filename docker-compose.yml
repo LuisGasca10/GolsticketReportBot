@@ -2,33 +2,48 @@ version: '3.8'
 
 services:
   # Servicio para la aplicación del bot
-  # bot:
-  #   build: .
-  #   container_name: telegram_bot_app
-  #   restart: always
-  #   env_file:
-  #     - .env
-  #   # El bot depende de que la base de datos esté lista
-  #   depends_on:
-  #     - db
+  bot:
+    build: .
+    container_name: telegram_bot_app
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
 
   # Servicio para la base de datos PostgreSQL
   db:
-    image: postgres:latest
+    # Es mejor práctica usar una versión específica en lugar de 'latest'
+    image: postgres:14-alpine
     container_name: postgres_db
-    environment:
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=mydatabase
     restart: always
-    # Carga las credenciales desde el .env para inicializar la DB
+    # Solo usamos env_file para cargar las credenciales
     env_file:
       - .env
     volumes:
       - postgresdb_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    
+  # Servicio para Redis (la cola de tareas)
+  redis:
+    image: redis:7-alpine
+    container_name: redis_broker
+    restart: always
 
-# Define el volumen que usará el servicio 'db' para la persistencia
+  # Servicio para el Worker de Celery
+  worker:
+    build: .
+    container_name: celery_worker
+    restart: always
+    command: celery -A src.tasks worker --loglevel=INFO
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+
+# Define el volumen que usará el servicio 'db'
 volumes:
-  postgresdb_data: # <-- Sintaxis corregida (sin la coma al final)
+  postgresdb_data:
