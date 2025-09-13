@@ -15,7 +15,7 @@ from src.domain.use_cases.registrar_usuario import RegistrarUsuarioUseCase
 from src.domain.use_cases.obtener_usuario import ObtenerUsuarioUseCase
 from src.domain.use_cases.obtener_tickets_semanales import ObtenerTicketsSemanalesUseCase
 from src.domain.use_cases.eliminar_ticket import EliminarTicketUseCase
-
+from src.domain.use_cases.generar_reporte_general import GenerarReporteGeneralUseCase
 # Estados de la conversación para el registro manual
 (GET_TICKET_NUM, GET_SERVICIO, GET_USUARIO, GET_CORREO, GET_EMPRESA) = range(5)
 
@@ -28,7 +28,8 @@ class BotHandlers:
         registrar_usuario_use_case: RegistrarUsuarioUseCase,
         obtener_usuario_use_case: ObtenerUsuarioUseCase,
         obtener_tickets_semanales_uc: ObtenerTicketsSemanalesUseCase,
-        eliminar_ticket_uc: EliminarTicketUseCase
+        eliminar_ticket_uc: EliminarTicketUseCase,
+        generar_reporte_general_uc: GenerarReporteGeneralUseCase
     ):
         self.registrar_ticket_use_case = registrar_ticket_use_case
         self.generar_reporte_use_case = generar_reporte_use_case
@@ -36,6 +37,8 @@ class BotHandlers:
         self.obtener_usuario_use_case = obtener_usuario_use_case
         self.obtener_tickets_semanales_use_case = obtener_tickets_semanales_uc
         self.eliminar_ticket_use_case = eliminar_ticket_uc
+        self.generar_reporte_general_use_case = generar_reporte_general_uc
+
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(
@@ -45,7 +48,8 @@ class BotHandlers:
             "/nuevoticket (registro manual)\n"
             "/importar <ID> (scraping en 2do plano)\n"
             "/eliminar (borrar ticket de la semana)\n"
-            "/reporte (generar Excel semanal)"
+            "/reporte (generar Excel semanal)\n"
+            "/reportegeneral (tu reporte histórico)"
         )
 
     async def registrar_usuario(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -173,6 +177,32 @@ class BotHandlers:
         except Exception as e:
             print(f"Error inesperado al generar reporte: {e}")
             await update.message.reply_text("❌ Ocurrió un error al generar el reporte.")
+            
+    async def generar_reporte_general(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        user_id = update.message.from_user.id
+        usuario = self.obtener_usuario_use_case.ejecutar(user_id)
+        if not usuario:
+            await update.message.reply_text("⚠️ No estás registrado. Usa /registrar primero.")
+            return
+
+        await update.message.reply_text(f"⚙️ Generando tu reporte histórico completo...")
+        
+        try:
+            # Llama al nuevo caso de uso para el reporte histórico
+            nombre_archivo, file_bytes = self.generar_reporte_general_use_case.ejecutar(
+                telegram_user_id=user_id,
+                comentarios="Reporte histórico de todos los tickets."
+            )
+            
+            await context.bot.send_document(
+                chat_id=update.message.chat_id,
+                document=file_bytes,
+                filename=nombre_archivo,
+            )
+        except Exception as e:
+            print(f"Error inesperado al generar reporte general: {e}")
+            await update.message.reply_text("❌ Ocurrió un error al generar el reporte general.")
+
 
     def get_conversation_handler(self) -> ConversationHandler:
         return ConversationHandler(

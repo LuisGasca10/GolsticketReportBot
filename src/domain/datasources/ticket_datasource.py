@@ -17,3 +17,9 @@ class ITicketDatasource(ABC):
     def eliminar_por_id(self, ticket_id: UUID) -> bool:
         """Elimina un ticket por su UUID y devuelve True si tuvo éxito."""
         pass
+    
+     
+    @abstractmethod
+    def obtener_todos_por_usuario_id(self, usuario_id: UUID) -> List[Ticket]:
+        """Obtiene el historial completo de tickets para un usuario específico."""
+        pass

@@ -17,3 +17,6 @@ class TicketRepositoryImpl(ITicketRepository):
     
     def eliminar_por_id(self,ticket_id: UUID):
        return self.datasource.eliminar_por_id(ticket_id)
+   
+    def obtener_todos_por_usuario_id(self, usuario_id: UUID) -> List[Ticket]:
+        return self.datasource.obtener_todos_por_usuario_id(usuario_id)

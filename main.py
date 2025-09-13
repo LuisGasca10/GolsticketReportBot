@@ -22,6 +22,9 @@ from src.domain.use_cases.registrar_usuario import RegistrarUsuarioUseCase
 from src.domain.use_cases.obtener_usuario import ObtenerUsuarioUseCase
 from src.domain.use_cases.obtener_tickets_semanales import ObtenerTicketsSemanalesUseCase
 from src.domain.use_cases.eliminar_ticket import EliminarTicketUseCase
+from src.domain.use_cases.generar_reporte_general import GenerarReporteGeneralUseCase
+
+
 
 def main() -> None:
     """
@@ -32,10 +35,10 @@ def main() -> None:
     # 1. Inyección de Dependencias
     # Se crean las instancias de las implementaciones concretas.
     # El bot principal ya NO necesita saber nada sobre el scraper.
-    ticket_local_datasource = TicketSQLDatasource()
-    ticket_repository = TicketRepositoryImpl(datasource=ticket_local_datasource)
-    usuario_local_datasource = UsuarioSQLDatasource()
-    usuario_repository = UsuarioRepositoryImpl(datasource=usuario_local_datasource)
+    ticket_datasource = TicketSQLDatasource()
+    ticket_repository = TicketRepositoryImpl(datasource=ticket_datasource)
+    usuario_datasource = UsuarioSQLDatasource()
+    usuario_repository = UsuarioRepositoryImpl(datasource=usuario_datasource)
     report_generator = ExcelReportGenerator()
 
     # 2. Casos de Uso
@@ -57,6 +60,8 @@ def main() -> None:
     )
     eliminar_ticket_uc = EliminarTicketUseCase(repository=ticket_repository)
     
+    generar_reporte_general_uc = GenerarReporteGeneralUseCase(ticket_repo=ticket_repository, usuario_repo=usuario_repository, generator=report_generator)
+    
     # 3. Handlers de Telegram
     # Se le pasan al bot todas las "recetas" que necesita.
     handlers = BotHandlers(
@@ -65,7 +70,8 @@ def main() -> None:
         registrar_usuario_use_case=registrar_usuario_uc,
         obtener_usuario_use_case=obtener_usuario_uc,
         obtener_tickets_semanales_uc=obtener_tickets_semanales_uc,
-        eliminar_ticket_uc=eliminar_ticket_uc
+        eliminar_ticket_uc=eliminar_ticket_uc,
+        generar_reporte_general_uc=generar_reporte_general_uc
     )
     
     # 4. Configuración y Ejecución del Bot
@@ -80,6 +86,7 @@ def main() -> None:
     application.add_handler(CommandHandler("registrar", handlers.registrar_usuario))
     application.add_handler(CommandHandler("importar", handlers.importar_ticket))
     application.add_handler(CommandHandler("reporte", handlers.generar_reporte))
+    application.add_handler(CommandHandler("reportegeneral", handlers.generar_reporte_general))
     application.add_handler(CommandHandler("eliminar", handlers.eliminar_ticket_start))
     application.add_handler(handlers.get_conversation_handler())
     application.add_handler(CallbackQueryHandler(handlers.eliminar_ticket_callback))

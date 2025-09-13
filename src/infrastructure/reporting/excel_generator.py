@@ -48,13 +48,17 @@ class ExcelReportGenerator(IReportGenerator):
 
         try:
             # --- 2. RELLENAMOS LA CABECERA USANDO LA FUNCIÓN SEGURA ---
-            # CORRECCIÓN: Apuntamos a la celda A4 para el nombre del colaborador.
             safe_write(ws, 'A4', header_data.get('generado_por', 'N/A'))
             
-            fecha_rango = f"{header_data.get('fecha_inicio').strftime('%d/%m/%Y')} - {header_data.get('fecha_fin').strftime('%d/%m/%Y')}"
-            safe_write(ws, 'D4', fecha_rango) # Celda D4 para la fecha
+            if "fecha_rango" in header_data:
+                fecha_texto = header_data["fecha_rango"]
+            else:
+                fecha_texto = f"{header_data.get('fecha_inicio').strftime('%d/%m/%Y')} - {header_data.get('fecha_fin').strftime('%d/%m/%Y')}"
+                
+
             
-            # CORRECCIÓN: Apuntamos a la celda D6 para el contador de actividades.
+            safe_write(ws, 'D4', fecha_texto) # Celda D4 para la fecha
+            
             safe_write(ws, 'D6', len(tickets) if tickets else 0)
 
             # --- 3. RELLENAMOS LA TABLA DE DATOS ---

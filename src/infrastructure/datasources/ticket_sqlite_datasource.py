@@ -33,3 +33,12 @@ class TicketSQLDatasource(ITicketDatasource):
                 db.commit()
                 return True # Éxito
             return False # No se encontró el ticket
+        
+    def obtener_todos_por_usuario_id(self, usuario_id: UUID) -> List[Ticket]:
+        with SessionLocal() as db:
+            # La consulta ahora solo filtra por el ID del usuario
+            tickets_db = db.query(TicketModel).filter(
+                TicketModel.usuario_id == usuario_id
+            ).order_by(TicketModel.fecha.desc()).all() # Ordenamos por fecha descendente
+            return [t.to_entity() for t in tickets_db]
+        
