@@ -1,6 +1,6 @@
 import os
 import uuid
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, BigInteger
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from src.domain.entities.entities import Ticket, Usuario
@@ -13,7 +13,7 @@ Base = declarative_base()
 class UsuarioModel(Base):
     __tablename__ = "usuarios"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    telegram_user_id = Column(Integer, unique=True, nullable=False, index=True)
+    telegram_user_id = Column(BigInteger, unique=True, nullable=False, index=True)
     nombre_completo = Column(String, nullable=False)
     tickets = relationship("TicketModel", back_populates="propietario")
 
@@ -32,9 +32,9 @@ class TicketModel(Base):
     propietario = relationship("UsuarioModel", back_populates="tickets")
     
     # Mantenemos el user_id de telegram para referencia, aunque la relación es por usuario_id
-    user_id = Column(Integer, nullable=False)
-    chat_id = Column(Integer, nullable=False)
-    fecha = Column(DateTime, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+    chat_id = Column(BigInteger, nullable=False)
+    fecha = Column(DateTime(timezone=True), nullable=False)
     numero_ticket = Column(String, nullable=False)
     servicio = Column(String, nullable=False)
     usuario_reporta = Column(String, nullable=False)

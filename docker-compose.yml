@@ -11,6 +11,8 @@ services:
     depends_on:
       - db
       - redis
+    environment:
+      - PYTHONUNBUFFERED=1
 
   # Servicio para la base de datos PostgreSQL
   db:
@@ -43,6 +45,8 @@ services:
     depends_on:
       - redis
       - db
+    environment:
+      - PYTHONUNBUFFERED=1
 
 # Define el volumen que usará el servicio 'db'
 volumes:

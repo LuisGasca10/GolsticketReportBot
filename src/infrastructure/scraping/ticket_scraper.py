@@ -1,5 +1,6 @@
 from datetime import datetime
 from bs4 import BeautifulSoup
+import pytz
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
@@ -54,12 +55,13 @@ class TicketScraper(ITicketScraper):
             # --- CORRECCIÓN FINAL PARA EL CORREO ---
             correo_element = soup.select_one("span[id$='-email']")
             correo_usuario = correo_element.text.strip() if correo_element else 'Correo no encontrado'
-
+            mexico_tz = pytz.timezone('America/Mexico_City')
+            
             ticket_entity = Ticket(
                 id=None,
                 user_id=user_id,
                 chat_id=chat_id,
-                fecha=datetime.now(),
+                fecha=datetime.now(mexico_tz),
                 numero_ticket=str(ticket_id),
                 servicio=soup.select_one('td#inline-answer-52 span').text.strip() if soup.select_one('td#inline-answer-52 span') else 'No definido',
                 usuario_reporta=soup.select_one("span[id^='user-'][id$='-name']").text.strip(),

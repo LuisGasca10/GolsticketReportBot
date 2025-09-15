@@ -1,5 +1,6 @@
 from typing import List
 from datetime import datetime, timedelta
+import pytz
 from src.domain.entities.entities import Ticket
 from src.domain.repositories.ticket_repository import ITicketRepository
 from src.domain.repositories.user_repository import IUsuarioRepository
@@ -14,8 +15,10 @@ class ObtenerTicketsSemanalesUseCase:
         if not usuario:
             raise ValueError("Usuario no registrado.")
 
-        today = datetime.now()
+        mexico_tz = pytz.timezone('America/Mexico_City')
+        today = datetime.now(mexico_tz)
+
         start_of_week = today - timedelta(days=today.weekday())
-        end_of_week = start_of_week + timedelta(days=5) # Lunes a Sabado
+        end_of_week = start_of_week + timedelta(days=5)
 
         return self.ticket_repo.obtener_por_rango_fechas_y_usuario(usuario.id, start_of_week, end_of_week)
