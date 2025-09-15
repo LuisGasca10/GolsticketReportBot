@@ -1,4 +1,3 @@
-import os
 import io
 from typing import List, Dict, Any
 from datetime import datetime
@@ -8,6 +7,7 @@ from openpyxl.cell import Cell
 from openpyxl.worksheet.worksheet import Worksheet
 from src.domain.reporting.report_generator import IReportGenerator
 from src.domain.entities.entities import Ticket
+from src.config.settings import settings
 
 def safe_write(ws: Worksheet, cell_coord: str, value: Any):
     """
@@ -44,7 +44,7 @@ class ExcelReportGenerator(IReportGenerator):
             print("ERROR CRÍTICO: No se encontró el archivo 'template_reporte.xlsx'.")
             raise
             
-        BASE_URL = os.getenv("BASE_URL", "")
+        BASE_URL = settings.SCRAPER_BASE_URL
 
         try:
             # --- 2. RELLENAMOS LA CABECERA USANDO LA FUNCIÓN SEGURA ---

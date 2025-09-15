@@ -10,3 +10,7 @@ class IUsuarioDatasource(ABC):
     @abstractmethod
     def obtener_por_telegram_id(self, telegram_user_id: int) -> Optional[Usuario]:
         pass
+    
+    @abstractmethod
+    def actualizar(self, usuario: Usuario) -> Usuario:
+        pass

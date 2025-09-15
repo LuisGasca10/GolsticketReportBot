@@ -1,12 +1,12 @@
-import os
+
 import asyncio
 import telegram
 from celery import Celery
-from dotenv import load_dotenv
+
 
 # El worker es un proceso separado, por lo que necesita cargar
 # las variables de entorno por su cuenta.
-load_dotenv()
+from src.config.settings import settings
 
 # --- Importamos las piezas de nuestra arquitectura que el worker necesita ---
 from src.infrastructure.scraping.ticket_scraper import TicketScraper
@@ -14,15 +14,15 @@ from src.infrastructure.datasources.ticket_sqlite_datasource import TicketSQLDat
 from src.infrastructure.repositories.ticket_repository_impl import TicketRepositoryImpl
 from src.infrastructure.datasources.usuario_sqlite_datasource import UsuarioSQLDatasource
 from src.infrastructure.repositories.user_repository_impl import UsuarioRepositoryImpl
-from src.domain.use_cases.importar_ticket import ImportarTicketUseCase
+from src.domain.use_cases.tickets.importar_ticket import ImportarTicketUseCase
 
 # --- Configuración de la App de Celery ---
-celery_app = Celery('tasks', broker=os.getenv('CELERY_BROKER_URL'))
+celery_app = Celery('tasks', broker=settings.CELERY_BROKER_URL)
 
 # --- Función auxiliar para enviar mensajes desde el worker ---
 async def send_telegram_message(chat_id, message, parse_mode=None):
     """Crea una instancia de bot para enviar un mensaje de notificación."""
-    token = os.getenv("TELEGRAM_TOKEN")
+    token = settings.TELEGRAM_TOKEN
     if not token:
         print("WORKER: No se encontró el TELEGRAM_TOKEN, no se pueden enviar notificaciones.")
         return

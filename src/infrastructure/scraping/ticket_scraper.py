@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -8,12 +7,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from src.domain.entities.entities import Ticket
 from src.domain.scraping.scraper_interface import ITicketScraper
+from src.config.settings import settings
 
 class TicketScraper(ITicketScraper):
     def __init__(self):
-        self.USUARIO = os.getenv("USUARIO")
-        self.PASSWORD = os.getenv("PASSWORD")
-        self.BASE_URL = os.getenv("BASE_URL")
+        self.USUARIO = settings.SCRAPER_USUARIO
+        self.PASSWORD = settings.SCRAPER_PASSWORD
+        self.BASE_URL = settings.SCRAPER_BASE_URL
         options = ChromeOptions()
         options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")

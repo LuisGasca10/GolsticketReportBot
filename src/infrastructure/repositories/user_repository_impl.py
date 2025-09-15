@@ -12,3 +12,6 @@ class UsuarioRepositoryImpl(IUsuarioRepository):
 
     def obtener_por_telegram_id(self, telegram_user_id: int) -> Optional[Usuario]:
         return self.datasource.obtener_por_telegram_id(telegram_user_id)
+    
+    def actualizar(self, usuario) -> Usuario:
+        return self.datasource.actualizar(usuario)

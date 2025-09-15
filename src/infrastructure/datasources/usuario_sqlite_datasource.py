@@ -14,3 +14,15 @@ class UsuarioSQLDatasource(IUsuarioDatasource):
         with SessionLocal() as db:
             usuario_db = db.query(UsuarioModel).filter(UsuarioModel.telegram_user_id == telegram_user_id).first()
             return usuario_db.to_entity() if usuario_db else None
+        
+        
+    def actualizar(self, usuario: Usuario) -> Usuario:
+        with SessionLocal() as db:
+            usuario_db = db.query(UsuarioModel).filter(UsuarioModel.telegram_user_id == usuario.telegram_user_id).first()
+            if not usuario_db:
+                raise ValueError("No se encontró el usuario para actualizar.")
+            usuario_db.nombre_completo = usuario.nombre_completo
+            db.commit()
+            db.refresh(usuario_db)
+            
+            return usuario_db.to_entity()

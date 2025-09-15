@@ -16,6 +16,6 @@ class ObtenerTicketsSemanalesUseCase:
 
         today = datetime.now()
         start_of_week = today - timedelta(days=today.weekday())
-        end_of_week = start_of_week + timedelta(days=4) # Lunes a Viernes
+        end_of_week = start_of_week + timedelta(days=5) # Lunes a Sabado
 
         return self.ticket_repo.obtener_por_rango_fechas_y_usuario(usuario.id, start_of_week, end_of_week)
