@@ -18,30 +18,24 @@ class GenerarReporteTicketsUseCase:
         if not usuario:
             raise ValueError("No se puede generar un reporte para un usuario no registrado.")
 
-        # --- Lógica de cálculo de fechas ---
         mexico_tz = pytz.timezone('America/Mexico_City')
         today = datetime.now(mexico_tz)
 
         start_of_week = today - timedelta(days=today.weekday())
-        end_of_week = start_of_week + timedelta(days=5) # Lunes a Sábado
+        end_of_week = start_of_week + timedelta(days=5)
 
-        # --- LOG AÑADIDO ---
-        # Mostramos en la consola el rango de fechas que se va a usar para la consulta.
-        print(f"[DEBUG] Calculando rango de fechas para el reporte:")
-        print(f"  -> Fecha de inicio (Lunes): {start_of_week.strftime('%Y-%m-%d')}")
-        print(f"  -> Fecha de fin (Sábado):   {end_of_week.strftime('%Y-%m-%d')}")
+        print(f"[DEBUG] Calculando rango de fechas para el reporte (Zona Horaria: {mexico_tz}):")
+        print(f"  -> Fecha de inicio (Lunes): {start_of_week.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+        print(f"  -> Fecha de fin (Sábado):   {end_of_week.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+        print(f"  -> Filtrando para el usuario: {usuario.nombre_completo} (ID: {usuario.id})")
         
-        # --- Lógica de obtención de tickets ---
         tickets = self.repository.obtener_por_rango_fechas_y_usuario(usuario.id, start_of_week, end_of_week)
         
-        # --- LOG AÑADIDO ---
-        # Mostramos cuántos tickets se encontraron en la base de datos para ese rango.
         print(f"[DEBUG] Tickets encontrados en la base de datos para este rango: {len(tickets)}")
         
         if not tickets:
             print("[DEBUG] La lista de tickets está vacía. El reporte se generará sin datos en la tabla.")
 
-        # --- Lógica de generación de nombre y cabecera (sin cambios) ---
         nombre_archivo = f"Reporte_{usuario.nombre_completo.replace(' ', '_')}_{start_of_week.strftime('%Y-%m-%d')}.xlsx"
         
         header_data = {

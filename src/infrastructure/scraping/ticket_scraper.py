@@ -63,7 +63,7 @@ class TicketScraper(ITicketScraper):
                 chat_id=chat_id,
                 fecha=datetime.now(mexico_tz),
                 numero_ticket=str(ticket_id),
-                servicio=soup.select_one('td#inline-answer-52 span').text.strip() if soup.select_one('td#inline-answer-52 span') else 'No definido',
+                servicio=soup.select_one('div.tixTitle > h3').text.strip() if soup.select_one('div.tixTitle > h3') else '',
                 usuario_reporta=soup.select_one("span[id^='user-'][id$='-name']").text.strip(),
                 correo_usuario=correo_usuario, # <-- Usamos la variable corregida
                 empresa=get_data_by_header('Organización:').split('(')[0].strip(),
